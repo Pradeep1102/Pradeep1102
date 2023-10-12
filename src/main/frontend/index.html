@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Todo App</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+</head>
+<body>
+
+<div class="container">
+  <h1>Todo App</h1>
+
+  <h2>Create Todo</h2>
+  <input type="text" id="task" placeholder="Enter task">
+  <button onclick="createTodo()">Add Todo</button>
+
+  <h2>All Todos</h2>
+  <ul id="todoList"></ul>
+</div>
+
+<script>
+  async function getAllTodos() {
+    const response = await fetch('http://localhost:8080/api/todos');
+    const todos = await response.json();
+    const todoList = document.getElementById('todoList');
+    todoList.innerHTML = '';
+
+    todos.forEach(todo => {
+      const listItem = document.createElement('li');
+      listItem.textContent = `Task: ${todo.task}, Completed: ${todo.completed}`;
+      todoList.appendChild(listItem);
+    });
+  }
+
+  async function createTodo() {
+    const task = document.getElementById('task').value;
+    const newTodo = { task, completed: false };
+
+    const response = await fetch('/api/todos', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(newTodo)
+    });
+
+    if (response.ok) {
+      console.log('Todo created successfully');
+      getAllTodos();
+    } else {
+      console.error('Failed to create todo');
+    }
+  }
+
+  // Load initial todos on page load
+  getAllTodos();
+</script>
+
+</body>
+</html>

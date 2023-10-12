@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Todo List</title>
+    <style>
+        /* Add your CSS for drag-and-drop styling here */
+        #todoList {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        #todoList li {
+            padding: 10px;
+            margin-bottom: 5px;
+            background-color: #f2f2f2;
+            border: 1px solid #ccc;
+            cursor: move;
+        }
+
+        #todoList li.dragged {
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+<h1>Todo List</h1>
+
+<!-- Add a form for creating todos -->
+<form action="/todos" method="post">
+    <input type="text" name="task" placeholder="Enter a new task" required>
+    <button type="submit">Add Task</button>
+</form>
+
+<ul id="todoList" th:each="todo : ${todos}">
+    <li draggable="true" th:id="'task_' + ${todo.id}" th:text="${todo.task}" th:attr="data-id=${todo.id}"></li>
+</ul>
+
+<script>
+    const todoList = document.getElementById('todoList');
+
+    todoList.addEventListener('dragstart', (event) => {
+        event.dataTransfer.setData('text/plain', event.target.dataset.id);
+        event.target.classList.add('dragged');
+    });
+
+    todoList.addEventListener('dragend', (event) => {
+        event.target.classList.remove('dragged');
+    });
+
+    todoList.addEventListener('dragover', (event) => {
+        event.preventDefault();
+    });
+
+    todoList.addEventListener('drop', (event) => {
+        event.preventDefault();
+        const taskId = event.dataTransfer.getData('text/plain');
+        const taskElement = document.getElementById('task_' + taskId);
+        const draggedTaskIndex = Array.from(todoList.children).indexOf(taskElement);
+        const droppedIndex = Array.from(todoList.children).indexOf(event.target);
+
+        if (draggedTaskIndex >= 0 && droppedIndex >= 0) {
+            const tasks = Array.from(todoList.children);
+            const draggedTask = tasks[draggedTaskIndex];
+            tasks.splice(draggedTaskIndex, 1);
+            tasks.splice(droppedIndex, 0, draggedTask);
+
+            todoList.innerHTML = '';
+            tasks.forEach(task => {
+                todoList.appendChild(task);
+            });
+        }
+    });
+</script>
+</body>
+</html>
